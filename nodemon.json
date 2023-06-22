@@ -1,0 +1,6 @@
+{
+  "watch": ["lib", "src", "foundry.toml"],
+  "ignore": [".vscode/", "cache/", "node_modules/"],
+  "ext": "sol,vy,yul",
+  "exec": "forge test -vvv"
+}
