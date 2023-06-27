@@ -51,5 +51,17 @@ contract BaseTest is DSTest {
         // bytes32[] memory leaves = new bytes32[](2);
         // leaves[0] = leaf;
         // leaves[1] = leaf2;
+
+        bytes32[] memory hashes = BuildMerkleRoot.emptySparseMerkleTree(160);
+
+        for (uint256 i = 0; i < hashes.length; i++) {
+            console.logBytes32(hashes[i]);
+        }
+
+        // bytes32[160] memory hashes = BuildMerkleRoot.emptySparseMerkleTree160();
+
+        // for (uint256 i = 0; i < 160; i++) {
+        //     console.logBytes32(hashes[i]);
+        // }
     }
 }
