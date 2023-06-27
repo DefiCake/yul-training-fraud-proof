@@ -4,4 +4,5 @@ out = 'out'
 libraries=[]
 # via_ir = true
 solc_version = '0.8.19'
+gas_reports = ["FraudProof"]
 # See more config options https://github.com/gakonst/foundry/tree/master/config
