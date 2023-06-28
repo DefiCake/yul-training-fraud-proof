@@ -52,11 +52,24 @@ contract BaseTest is DSTest {
         // leaves[0] = leaf;
         // leaves[1] = leaf2;
 
-        bytes32[] memory hashes = BuildMerkleRoot.emptySparseMerkleTree(160);
+        bytes32[] memory leaves = new bytes32[](3);
+        // bytes32[] memory hashes = BuildMerkleRoot.buildSubtree(1, leaves);
+        bytes32[] memory res = BuildMerkleRoot.buildSubtree(bytes32(uint256(4)), 4, leaves);
 
-        for (uint256 i = 0; i < hashes.length; i++) {
-            console.logBytes32(hashes[i]);
-        }
+        bytes32 h1 = keccak256(abi.encode(bytes32(uint256(4)), 0));
+        console.logBytes32(res[0]);
+        console.logBytes32(h1);
+        console.log("======");
+
+        bytes32 h2 = keccak256(abi.encode(h1, 0));
+        console.logBytes32(res[1]);
+        console.logBytes32(h2);
+        console.log("======");
+
+        bytes32 h3 = keccak256(abi.encode(0, h2));
+        console.logBytes32(res[2]);
+        console.logBytes32(h3);
+        console.log("======");
 
         // bytes32[160] memory hashes = BuildMerkleRoot.emptySparseMerkleTree160();
 
