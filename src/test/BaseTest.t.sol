@@ -24,7 +24,31 @@ contract BaseTest is DSTest {
         assertTrue(address(fraudProof) != address(0));
     }
 
-    function testInvalidMerkleProof() public view {
+    function testCannotContestOrigin(address prover, bytes32 randomRoot) public {
+        fraudProof.updateRoot(randomRoot);
+        vm.prank(prover);
+        vm.expectRevert(FraudProof.CannotContestOrigin.selector);
+
+        bytes32[] memory indices = new bytes32[](1);
+        Transaction memory trx;
+        Transaction[] memory inputs = new Transaction[](1);
+        fraudProof.proveFraud(0, 0, indices, trx, inputs);
+    }
+
+    function testInvalidCheckpoint(address prover, uint256 checkpoint, bytes32 randomRoot) public {
+        fraudProof.updateRoot(randomRoot);
+
+        vm.assume(checkpoint > fraudProof._currentRootIndex());
+        vm.prank(prover);
+        vm.expectRevert(FraudProof.InvalidCheckpoint.selector);
+
+        bytes32[] memory indices = new bytes32[](1);
+        Transaction memory trx;
+        Transaction[] memory inputs = new Transaction[](1);
+        fraudProof.proveFraud(checkpoint, 0, indices, trx, inputs);
+    }
+
+    function testInvalidMerkleProof() public pure {
         // Transaction memory transaction1;
         // Transaction memory transaction2;
 
@@ -48,28 +72,29 @@ contract BaseTest is DSTest {
 
         // bytes32 leaf = keccak256(abi.encode(transaction1, spent));
         // bytes32 leaf2 = keccak256(abi.encode(transaction2, spent));
+
         // bytes32[] memory leaves = new bytes32[](2);
         // leaves[0] = leaf;
         // leaves[1] = leaf2;
 
-        bytes32[] memory leaves = new bytes32[](3);
-        // bytes32[] memory hashes = BuildMerkleRoot.buildSubtree(1, leaves);
-        bytes32[] memory res = BuildMerkleRoot.buildSubtree(bytes32(uint256(4)), 4, leaves);
+        // bytes32[] memory leaves = new bytes32[](3);
+        // // bytes32[] memory hashes = BuildMerkleRoot.buildSubtree(1, leaves);
+        // bytes32[] memory res = BuildMerkleRoot.buildSubtree(bytes32(uint256(4)), 4, leaves);
 
-        bytes32 h1 = keccak256(abi.encode(bytes32(uint256(4)), 0));
-        console.logBytes32(res[0]);
-        console.logBytes32(h1);
-        console.log("======");
+        // bytes32 h1 = keccak256(abi.encode(bytes32(uint256(4)), 0));
+        // console.logBytes32(res[0]);
+        // console.logBytes32(h1);
+        // console.log("======");
 
-        bytes32 h2 = keccak256(abi.encode(h1, 0));
-        console.logBytes32(res[1]);
-        console.logBytes32(h2);
-        console.log("======");
+        // bytes32 h2 = keccak256(abi.encode(h1, 0));
+        // console.logBytes32(res[1]);
+        // console.logBytes32(h2);
+        // console.log("======");
 
-        bytes32 h3 = keccak256(abi.encode(0, h2));
-        console.logBytes32(res[2]);
-        console.logBytes32(h3);
-        console.log("======");
+        // bytes32 h3 = keccak256(abi.encode(0, h2));
+        // console.logBytes32(res[2]);
+        // console.logBytes32(h3);
+        // console.log("======");
 
         // bytes32[160] memory hashes = BuildMerkleRoot.emptySparseMerkleTree160();
 
