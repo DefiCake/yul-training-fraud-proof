@@ -11,8 +11,11 @@ import "../libraries/UTXO.sol";
 import "../libraries/MerkleProof.sol";
 
 import "./utils/BuildMerkleRoot.sol";
+import "./utils/Cast.sol";
 
 contract BaseTest is DSTest {
+    using Cast for uint256;
+
     Vm vm = Vm(HEVM_ADDRESS);
     FraudProof fraudProof;
 
