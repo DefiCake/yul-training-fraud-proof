@@ -15,6 +15,7 @@ import "./utils/Cast.sol";
 
 contract BaseTest is DSTest {
     using Cast for uint256;
+    using Cast for bytes32;
 
     Vm vm = Vm(HEVM_ADDRESS);
     FraudProof fraudProof;
@@ -51,7 +52,7 @@ contract BaseTest is DSTest {
         fraudProof.proveFraud(checkpoint, 0, indices, trx, inputs);
     }
 
-    function testInvalidMerkleProof() public pure {
+    function testInvalidMerkleProof() public view {
         // Transaction memory transaction1;
         // Transaction memory transaction2;
 
@@ -104,5 +105,60 @@ contract BaseTest is DSTest {
         // for (uint256 i = 0; i < 160; i++) {
         //     console.logBytes32(hashes[i]);
         // }
+
+        bytes32[] memory empty = new bytes32[](4);
+        bytes32[] memory initialProofs = new bytes32[](0);
+
+        // {
+        //     (bytes32 root,,) = BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
+        //     console.logBytes32(root);
+        // }
+
+        // console.log("============");
+        // empty[0] = Cast.toBytes32(1);
+
+        // {
+        //     (bytes32 root,, bytes32 bitmap) = BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
+        //     console.logBytes32(root);
+
+        //     bytes32 h1 = keccak256(abi.encode(empty[0], 0));
+        //     bytes32 test = keccak256(abi.encode(h1, 0));
+
+        //     console.logBytes32(test);
+        //     console.logBytes32(bitmap);
+
+        //     empty[0] = bytes32(0);
+        // }
+
+        // console.log("============");
+        // empty[1] = Cast.toBytes32(2);
+
+        // {
+        //     (bytes32 root,, bytes32 bitmap) = BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
+        //     console.logBytes32(root);
+
+        //     bytes32 h1 = keccak256(abi.encode(empty[0], empty[1]));
+        //     bytes32 test = keccak256(abi.encode(h1, 0));
+
+        //     console.logBytes32(test);
+        //     console.logBytes32(bitmap);
+        // }
+
+        console.log("============");
+        empty[0] = Cast.toBytes32(1);
+        empty[1] = Cast.toBytes32(2);
+
+        {
+            (bytes32 root, bytes32[] memory wtf, bytes32 bitmap) =
+                BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
+            console.logBytes32(root);
+
+            bytes32 h1 = keccak256(abi.encode(empty[0], empty[1]));
+            bytes32 test = keccak256(abi.encode(h1, 0));
+
+            console.logBytes32(test);
+            console.log(bitmap.getBitAt(0));
+            console.log(wtf.length);
+        }
     }
 }
