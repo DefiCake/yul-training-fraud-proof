@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 library Cast {
     function toBytes32(uint256 value) public pure returns (bytes32) {
