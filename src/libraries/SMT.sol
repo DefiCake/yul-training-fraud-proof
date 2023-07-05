@@ -8,13 +8,6 @@ contract SMT {
 
     mapping(bytes32 => bytes) private db;
 
-    constructor() {
-        bytes memory value =
-            hex"11111111111111111111111111111111111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222";
-        bytes32 root = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
-        db[root] = value;
-    }
-
     function setValue(bytes32 key, bytes calldata value) external {
         db[key] = value;
     }
@@ -40,10 +33,19 @@ contract SMT {
                 mstore(0x00, keccak256(0x00, 0x40))
                 slot := keccak256(0x00, 0x20)
 
-                // If the path is to the left, load right slot
-                if eq(shr(255, path), 0) { slot := add(slot, 1) }
-
-                sidenode := sload(slot)
+                // If the new root is to the left (slot), the sidenode is to the right (slot+1)
+                // If the new root is to the right (slot + 1), the sidenode is to the left (slot)
+                switch and(shr(255, path), 1)
+                case 0 {
+                    // new root is to the left
+                    root := sload(slot)
+                    sidenode := sload(add(slot, 1))
+                }
+                case 1 {
+                    // new root is to the right
+                    sidenode := sload(slot)
+                    root := sload(add(slot, 1))
+                }
             }
 
             sidenodes[i] = sidenode;
@@ -56,17 +58,19 @@ contract SMT {
 
         db[key] = value;
 
+        uint256 topIndex = DEPTH - 1;
+
         for (uint256 i = 0; i < DEPTH;) {
-            bytes memory nodeValue = path2 % 2 == 0
-                ? abi.encodePacked(key, sidenodes[DEPTH - i - 1])
-                : abi.encodePacked(sidenodes[DEPTH - i - 1], key);
-
-            key = keccak256(nodeValue);
-            db[key] = nodeValue;
-
-            path2 = path2 >> 1;
-
             unchecked {
+                bytes memory nodeValue = path2 % 2 == 0
+                    ? abi.encodePacked(key, sidenodes[topIndex - i])
+                    : abi.encodePacked(sidenodes[topIndex - i], key);
+
+                key = keccak256(nodeValue);
+                db[key] = nodeValue;
+
+                path2 = path2 >> 1;
+
                 ++i;
             }
         }
@@ -105,10 +109,6 @@ contract SMT {
     function hashPair(bytes32 a, bytes32 b) internal pure returns (bytes32) {
         if (uint256(a) == 0 && uint256(b) == 0) return 0;
 
-        return keccak256(abi.encode(a, b));
-    }
-
-    function getRoot(bytes32[] calldata leaves) external returns (bytes32) {
-        for (uint256 i = 0; i < leaves.length; ++i) {}
+        return keccak256(abi.encodePacked(a, b));
     }
 }

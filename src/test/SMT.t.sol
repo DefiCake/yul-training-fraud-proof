@@ -24,12 +24,11 @@ contract BaseTest is DSTest {
         smt = new SMT();
     }
 
-    function testWriteValue() public {
-        Vout memory vout = Vout(address(0xdEADDEadBEefDEADbeefdEAdBEefdEADbEefDEaD), 5);
+    function testWriteValue_EmptyRoot(address addy, uint256 amount) external {
+        Vout memory vout = Vout(addy, amount);
 
         bytes memory value = abi.encode(vout);
         bytes32 key = keccak256(value);
-
         bytes32 newroot = smt.writeValue(bytes32(0), value);
 
         bytes memory recoveredValue = smt.getValue(newroot, key);
@@ -39,15 +38,47 @@ contract BaseTest is DSTest {
         assertEq(recoveredVout.value, vout.value, "Invalid recovered vout.value");
     }
 
-    function testGetValue() public {
-        // bytes32 root = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
-        // // smt.getDbValue(root);
+    function testWriteValue_MultipleValues(uint256 seed, uint256 nInputs) external {
+        nInputs = nInputs % 16;
+        vm.assume(nInputs > 0);
 
-        // // bytes memory value =
-        // //     hex"11111111111111111111111111111111111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222";
+        address[] memory addys = new address[](nInputs);
+        uint256[] memory amts = new uint[](nInputs);
 
-        // // smt.setValue(root, value);
+        for (uint256 i = 0; i < nInputs; i++) {
+            addys[i] = address(bytes20(keccak256(abi.encode(seed, i))));
+            amts[i] = uint256(keccak256(abi.encode(keccak256(abi.encode(seed, i)))));
+        }
 
-        // smt.getValue(root, 0x7000000000000000000000000000000000000000000000000000000000000000);
+        bytes32 root;
+        for (uint256 i = 0; i < addys.length; i++) {
+            Vout memory vout = Vout(addys[i], amts[i]);
+            bytes memory value = abi.encode(vout);
+            root = smt.writeValue(root, value);
+        }
+
+        for (uint256 i = 0; i < addys.length; i++) {
+            Vout memory vout = Vout(addys[i], amts[i]);
+            bytes memory value = abi.encode(vout);
+            bytes32 key = keccak256(value);
+
+            bytes memory recoveredValue = smt.getValue(root, key);
+            Vout memory recoveredVout = abi.decode(recoveredValue, (Vout));
+
+            assertEq(recoveredVout.to, vout.to, "Invalid recovered vout.to");
+            assertEq(recoveredVout.value, vout.value, "Invalid recovered vout.value");
+        }
     }
+
+    // function testGetValue() public {
+    //     // bytes32 root = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
+    //     // // smt.getDbValue(root);
+
+    //     // // bytes memory value =
+    //     // //     hex"11111111111111111111111111111111111111111111111111111111111111112222222222222222222222222222222222222222222222222222222222222222";
+
+    //     // // smt.setValue(root, value);
+
+    //     // smt.getValue(root, 0x7000000000000000000000000000000000000000000000000000000000000000);
+    // }
 }
