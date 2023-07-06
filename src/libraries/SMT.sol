@@ -24,13 +24,10 @@ contract SMT {
 
         db[key] = value;
 
-        uint256 topIndex = DEPTH - 1;
-
         for (uint256 i = 0; i < DEPTH;) {
             unchecked {
-                bytes memory nodeValue = path % 2 == 0
-                    ? abi.encodePacked(key, sidenodes[topIndex - i])
-                    : abi.encodePacked(sidenodes[topIndex - i], key);
+                bytes memory nodeValue =
+                    path % 2 == 0 ? abi.encodePacked(key, sidenodes[i]) : abi.encodePacked(sidenodes[i], key);
 
                 key = keccak256(nodeValue);
                 db[key] = nodeValue;
@@ -73,7 +70,11 @@ contract SMT {
     }
 
     function getProof(bytes32 root, bytes32 path) public view returns (bytes32[DEPTH] memory sidenodes) {
-        for (uint256 i = 0; i < DEPTH;) {
+        for (uint256 i = DEPTH; i > 0;) {
+            unchecked {
+                --i;
+            }
+
             bytes32 slot;
             bytes32 sidenode;
 
@@ -100,22 +101,14 @@ contract SMT {
 
             sidenodes[i] = sidenode;
             path = path << 1;
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
     function verifyProof(bytes32 root, bytes32 key, bytes32[DEPTH] memory proof) public pure returns (bool) {
         bytes32 currentNode = key;
 
-        uint256 topIndex = DEPTH - 1;
-
         for (uint256 i = 0; i < DEPTH;) {
-            currentNode = uint256(key) % 2 == 0
-                ? hashPair(currentNode, proof[topIndex - i])
-                : hashPair(proof[topIndex - i], currentNode);
+            currentNode = uint256(key) % 2 == 0 ? hashPair(currentNode, proof[i]) : hashPair(proof[i], currentNode);
 
             key = key >> 1;
 
