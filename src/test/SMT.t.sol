@@ -38,7 +38,38 @@ contract BaseTest is DSTest {
         assertEq(recoveredVout.value, vout.value, "Invalid recovered vout.value");
     }
 
-    function testWriteValue_MultipleValues(uint256 seed, uint256 nInputs) external {
+    function testWriteValue_MultipleValues(uint256 seed) external {
+        uint256 nInputs = 16;
+
+        address[] memory addys = new address[](nInputs);
+        uint256[] memory amts = new uint[](nInputs);
+
+        for (uint256 i = 0; i < nInputs; i++) {
+            addys[i] = address(bytes20(keccak256(abi.encode(seed, i))));
+            amts[i] = uint256(keccak256(abi.encode(keccak256(abi.encode(seed, i)))));
+        }
+
+        bytes32 root;
+        for (uint256 i = 0; i < addys.length; i++) {
+            Vout memory vout = Vout(addys[i], amts[i]);
+            bytes memory value = abi.encode(vout);
+            root = smt.writeValue(root, value);
+        }
+
+        for (uint256 i = 0; i < addys.length; i++) {
+            Vout memory vout = Vout(addys[i], amts[i]);
+            bytes memory value = abi.encode(vout);
+            bytes32 key = keccak256(value);
+
+            bytes memory recoveredValue = smt.getValue(root, key);
+            Vout memory recoveredVout = abi.decode(recoveredValue, (Vout));
+
+            assertEq(recoveredVout.to, vout.to, "Invalid recovered vout.to");
+            assertEq(recoveredVout.value, vout.value, "Invalid recovered vout.value");
+        }
+    }
+
+    function testWriteValue_MultipleValuesFuzzy(uint256 seed, uint256 nInputs) external {
         nInputs = nInputs % 16;
         vm.assume(nInputs > 0);
 
@@ -68,6 +99,37 @@ contract BaseTest is DSTest {
             assertEq(recoveredVout.to, vout.to, "Invalid recovered vout.to");
             assertEq(recoveredVout.value, vout.value, "Invalid recovered vout.value");
         }
+    }
+
+    function testVerifyProof(uint256 seed, uint256 nInputs, uint256 proofedValueIndex) external {
+        nInputs = nInputs % 16;
+        vm.assume(nInputs > 0);
+        proofedValueIndex = proofedValueIndex % nInputs;
+
+        bytes32 root;
+        bytes32 key;
+
+        {
+            address[] memory addys = new address[](nInputs);
+            uint256[] memory amts = new uint[](nInputs);
+
+            for (uint256 i = 0; i < nInputs; i++) {
+                addys[i] = address(bytes20(keccak256(abi.encode(seed, i))));
+                amts[i] = uint256(keccak256(abi.encode(keccak256(abi.encode(seed, i)))));
+            }
+
+            for (uint256 i = 0; i < addys.length; i++) {
+                Vout memory vout = Vout(addys[i], amts[i]);
+                bytes memory value = abi.encode(vout);
+                root = smt.writeValue(root, value);
+            }
+
+            key = keccak256(abi.encode(Vout(addys[proofedValueIndex], amts[proofedValueIndex])));
+        }
+
+        bytes32[256] memory proof = smt.getProof(root, key);
+
+        assertTrue(smt.verifyProof(root, key, proof), "Could not verify proof");
     }
 
     // function testGetValue() public {
