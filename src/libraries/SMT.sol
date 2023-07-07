@@ -8,8 +8,28 @@ contract SMT {
 
     mapping(bytes32 => bytes) private db;
 
-    function setValue(bytes32 key, bytes calldata value) external {
+    function setValue(bytes32 root, bytes32 key, bytes calldata value) external returns (bytes32 /*root*/ ) {
+        uint256 path = uint256(key);
+
+        bytes32[DEPTH] memory sidenodes = getProof(root, key);
+
         db[key] = value;
+
+        for (uint256 i = 0; i < DEPTH;) {
+            unchecked {
+                bytes memory nodeValue =
+                    path % 2 == 0 ? abi.encodePacked(key, sidenodes[i]) : abi.encodePacked(sidenodes[i], key);
+
+                key = keccak256(nodeValue);
+                db[key] = nodeValue;
+
+                path = path >> 1;
+
+                ++i;
+            }
+        }
+
+        return key;
     }
 
     function getDbValue(bytes32 key) external view returns (bytes memory) {
@@ -104,6 +124,29 @@ contract SMT {
         }
     }
 
+    // Next step, assemblify this, I think there are huge gas optimizations to achieve
+    function getCompressedProof(bytes32[DEPTH] calldata proofs) external pure returns (bytes32[] memory cProofs) {
+        uint256 len;
+        bytes32 bitmap;
+        for (uint256 i = 0; i < DEPTH; i++) {
+            bitmap = bitmap >> 1;
+            if (proofs[i] != 0) {
+                len++;
+                bitmap = bitmap | bytes32(uint256(2 ** 255));
+            }
+        }
+        cProofs = new bytes32[](len + 1);
+        cProofs[0] = bitmap;
+
+        uint256 count;
+        for (uint256 i = 0; i < DEPTH; i++) {
+            if (proofs[i] != 0) {
+                cProofs[count + 1] = proofs[i];
+                count++;
+            }
+        }
+    }
+
     function verifyProof(bytes32 root, bytes32 key, bytes32[DEPTH] memory proof) public pure returns (bool) {
         bytes32 currentNode = key;
 
@@ -118,6 +161,12 @@ contract SMT {
         }
 
         return currentNode == root;
+    }
+
+    // TODO
+    function verifyCompressedProof(bytes32 root, bytes32 key, bytes32[] memory cProofs) public pure returns (bool) {
+        (root, key, cProofs);
+        return true;
     }
 
     function hashPair(bytes32 a, bytes32 b) internal pure returns (bytes32) {

@@ -52,113 +52,113 @@ contract BaseTest is DSTest {
         fraudProof.proveFraud(checkpoint, 0, indices, trx, inputs);
     }
 
-    function testInvalidMerkleProof() public view {
-        // Transaction memory transaction1;
-        // Transaction memory transaction2;
+    // function testInvalidMerkleProof() public view {
+    //     // Transaction memory transaction1;
+    //     // Transaction memory transaction2;
 
-        // {
-        //     Vin[] memory vin = new Vin[](0);
-        //     Vout[] memory vout = new Vout[](2);
-        //     vout[0] = Vout(address(0xDEAD), 100);
-        //     vout[1] = Vout(address(0xBEEF), 200);
-        //     transaction1 = Transaction(vin, vout);
-        // }
+    //     // {
+    //     //     Vin[] memory vin = new Vin[](0);
+    //     //     Vout[] memory vout = new Vout[](2);
+    //     //     vout[0] = Vout(address(0xDEAD), 100);
+    //     //     vout[1] = Vout(address(0xBEEF), 200);
+    //     //     transaction1 = Transaction(vin, vout);
+    //     // }
 
-        // {
-        //     Vin[] memory vin = new Vin[](0);
-        //     Vout[] memory vout = new Vout[](2);
-        //     vout[0] = Vout(address(0xDEAD), 300);
-        //     vout[1] = Vout(address(0xBEEF), 400);
-        //     transaction2 = Transaction(vin, vout);
-        // }
+    //     // {
+    //     //     Vin[] memory vin = new Vin[](0);
+    //     //     Vout[] memory vout = new Vout[](2);
+    //     //     vout[0] = Vout(address(0xDEAD), 300);
+    //     //     vout[1] = Vout(address(0xBEEF), 400);
+    //     //     transaction2 = Transaction(vin, vout);
+    //     // }
 
-        // bool[] memory spent = new bool[](2);
+    //     // bool[] memory spent = new bool[](2);
 
-        // bytes32 leaf = keccak256(abi.encode(transaction1, spent));
-        // bytes32 leaf2 = keccak256(abi.encode(transaction2, spent));
+    //     // bytes32 leaf = keccak256(abi.encode(transaction1, spent));
+    //     // bytes32 leaf2 = keccak256(abi.encode(transaction2, spent));
 
-        // bytes32[] memory leaves = new bytes32[](2);
-        // leaves[0] = leaf;
-        // leaves[1] = leaf2;
+    //     // bytes32[] memory leaves = new bytes32[](2);
+    //     // leaves[0] = leaf;
+    //     // leaves[1] = leaf2;
 
-        // bytes32[] memory leaves = new bytes32[](3);
-        // // bytes32[] memory hashes = BuildMerkleRoot.buildSubtree(1, leaves);
-        // bytes32[] memory res = BuildMerkleRoot.buildSubtree(bytes32(uint256(4)), 4, leaves);
+    //     // bytes32[] memory leaves = new bytes32[](3);
+    //     // // bytes32[] memory hashes = BuildMerkleRoot.buildSubtree(1, leaves);
+    //     // bytes32[] memory res = BuildMerkleRoot.buildSubtree(bytes32(uint256(4)), 4, leaves);
 
-        // bytes32 h1 = keccak256(abi.encode(bytes32(uint256(4)), 0));
-        // console.logBytes32(res[0]);
-        // console.logBytes32(h1);
-        // console.log("======");
+    //     // bytes32 h1 = keccak256(abi.encode(bytes32(uint256(4)), 0));
+    //     // console.logBytes32(res[0]);
+    //     // console.logBytes32(h1);
+    //     // console.log("======");
 
-        // bytes32 h2 = keccak256(abi.encode(h1, 0));
-        // console.logBytes32(res[1]);
-        // console.logBytes32(h2);
-        // console.log("======");
+    //     // bytes32 h2 = keccak256(abi.encode(h1, 0));
+    //     // console.logBytes32(res[1]);
+    //     // console.logBytes32(h2);
+    //     // console.log("======");
 
-        // bytes32 h3 = keccak256(abi.encode(0, h2));
-        // console.logBytes32(res[2]);
-        // console.logBytes32(h3);
-        // console.log("======");
+    //     // bytes32 h3 = keccak256(abi.encode(0, h2));
+    //     // console.logBytes32(res[2]);
+    //     // console.logBytes32(h3);
+    //     // console.log("======");
 
-        // bytes32[160] memory hashes = BuildMerkleRoot.emptySparseMerkleTree160();
+    //     // bytes32[160] memory hashes = BuildMerkleRoot.emptySparseMerkleTree160();
 
-        // for (uint256 i = 0; i < 160; i++) {
-        //     console.logBytes32(hashes[i]);
-        // }
+    //     // for (uint256 i = 0; i < 160; i++) {
+    //     //     console.logBytes32(hashes[i]);
+    //     // }
 
-        bytes32[] memory empty = new bytes32[](4);
-        bytes32[] memory initialProofs = new bytes32[](0);
+    //     bytes32[] memory empty = new bytes32[](4);
+    //     bytes32[] memory initialProofs = new bytes32[](0);
 
-        // {
-        //     (bytes32 root,,) = BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
-        //     console.logBytes32(root);
-        // }
+    //     // {
+    //     //     (bytes32 root,,) = BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
+    //     //     console.logBytes32(root);
+    //     // }
 
-        // console.log("============");
-        // empty[0] = Cast.toBytes32(1);
+    //     // console.log("============");
+    //     // empty[0] = Cast.toBytes32(1);
 
-        // {
-        //     (bytes32 root,, bytes32 bitmap) = BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
-        //     console.logBytes32(root);
+    //     // {
+    //     //     (bytes32 root,, bytes32 bitmap) = BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
+    //     //     console.logBytes32(root);
 
-        //     bytes32 h1 = keccak256(abi.encode(empty[0], 0));
-        //     bytes32 test = keccak256(abi.encode(h1, 0));
+    //     //     bytes32 h1 = keccak256(abi.encode(empty[0], 0));
+    //     //     bytes32 test = keccak256(abi.encode(h1, 0));
 
-        //     console.logBytes32(test);
-        //     console.logBytes32(bitmap);
+    //     //     console.logBytes32(test);
+    //     //     console.logBytes32(bitmap);
 
-        //     empty[0] = bytes32(0);
-        // }
+    //     //     empty[0] = bytes32(0);
+    //     // }
 
-        // console.log("============");
-        // empty[1] = Cast.toBytes32(2);
+    //     // console.log("============");
+    //     // empty[1] = Cast.toBytes32(2);
 
-        // {
-        //     (bytes32 root,, bytes32 bitmap) = BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
-        //     console.logBytes32(root);
+    //     // {
+    //     //     (bytes32 root,, bytes32 bitmap) = BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
+    //     //     console.logBytes32(root);
 
-        //     bytes32 h1 = keccak256(abi.encode(empty[0], empty[1]));
-        //     bytes32 test = keccak256(abi.encode(h1, 0));
+    //     //     bytes32 h1 = keccak256(abi.encode(empty[0], empty[1]));
+    //     //     bytes32 test = keccak256(abi.encode(h1, 0));
 
-        //     console.logBytes32(test);
-        //     console.logBytes32(bitmap);
-        // }
+    //     //     console.logBytes32(test);
+    //     //     console.logBytes32(bitmap);
+    //     // }
 
-        console.log("============");
-        empty[0] = Cast.toBytes32(1);
-        empty[1] = Cast.toBytes32(2);
+    //     console.log("============");
+    //     empty[0] = Cast.toBytes32(1);
+    //     empty[1] = Cast.toBytes32(2);
 
-        {
-            (bytes32 root, bytes32[] memory wtf, bytes32 bitmap) =
-                BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
-            console.logBytes32(root);
+    //     {
+    //         (bytes32 root, bytes32[] memory wtf, bytes32 bitmap) =
+    //             BuildMerkleRoot.buildCompressedProof(empty, initialProofs, 0, bytes32(0));
+    //         console.logBytes32(root);
 
-            bytes32 h1 = keccak256(abi.encode(empty[0], empty[1]));
-            bytes32 test = keccak256(abi.encode(h1, 0));
+    //         bytes32 h1 = keccak256(abi.encode(empty[0], empty[1]));
+    //         bytes32 test = keccak256(abi.encode(h1, 0));
 
-            console.logBytes32(test);
-            console.log(bitmap.getBitAt(0));
-            console.log(wtf.length);
-        }
-    }
+    //         console.logBytes32(test);
+    //         console.log(bitmap.getBitAt(0));
+    //         console.log(wtf.length);
+    //     }
+    // }
 }

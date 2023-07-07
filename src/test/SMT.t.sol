@@ -13,7 +13,7 @@ import "../libraries/MerkleProof.sol";
 import "./utils/BuildMerkleRoot.sol";
 import "./utils/Cast.sol";
 
-contract BaseTest is DSTest {
+contract SMTTest is DSTest {
     using Cast for uint256;
     using Cast for bytes32;
 
@@ -130,6 +130,53 @@ contract BaseTest is DSTest {
         bytes32[256] memory proof = smt.getProof(root, key);
 
         assertTrue(smt.verifyProof(root, key, proof), "Could not verify proof");
+    }
+
+    function testVerifyCompressedProof() external {
+        bytes32[] memory keys = new bytes32[](12);
+        bytes32 root;
+        for (uint256 i = 0; i < 12; i++) {
+            keys[i] = bytes32(i + 16);
+            root = smt.setValue(root, keys[i], hex"01");
+        }
+
+        // Since the tree is only filled up to level ceil(log(12)) = 4 and from there it is all zeroed,
+        // There are 3 proofs. We need to account for 1 more element for the bitmap
+        for (uint256 i = 0; i < 8; i++) {
+            bytes32[256] memory uncompressedProofs = smt.getProof(root, keys[i]);
+            bytes32[] memory compressedProofs = smt.getCompressedProof(uncompressedProofs);
+            assertEq(compressedProofs.length, 5);
+            assertEq(compressedProofs[0], bytes32(uint256(15))); // bitmap = 00..00..1111
+
+            assertEq(compressedProofs[1], uncompressedProofs[0]);
+            assertEq(compressedProofs[2], uncompressedProofs[1]);
+            assertEq(compressedProofs[3], uncompressedProofs[2]);
+            assertEq(compressedProofs[4], uncompressedProofs[3]);
+
+            for (uint256 j = 4; j < 256; j++) {
+                assertEq(uncompressedProofs[j], bytes32(0));
+            }
+
+            assertTrue(smt.verifyCompressedProof(root, keys[i], compressedProofs));
+        }
+
+        for (uint256 i = 8; i < 12; i++) {
+            bytes32[256] memory uncompressedProofs = smt.getProof(root, keys[i]);
+            bytes32[] memory compressedProofs = smt.getCompressedProof(uncompressedProofs);
+            assertEq(compressedProofs.length, 4);
+            assertEq(compressedProofs[0], bytes32(uint256(11))); // bitmap = 00..00..1011
+
+            assertEq(compressedProofs[1], uncompressedProofs[0]);
+            assertEq(compressedProofs[2], uncompressedProofs[1]);
+            assertEq(uncompressedProofs[2], bytes32(0));
+            assertEq(compressedProofs[3], uncompressedProofs[3]);
+
+            for (uint256 j = 4; j < 256; j++) {
+                assertEq(uncompressedProofs[j], bytes32(0));
+            }
+
+            assertTrue(smt.verifyCompressedProof(root, keys[i], compressedProofs));
+        }
     }
 
     // function testGetValue() public {
