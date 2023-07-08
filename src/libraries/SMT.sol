@@ -124,26 +124,29 @@ contract SMT {
         }
     }
 
-    // Next step, assemblify this, I think there are huge gas optimizations to achieve
-    function getCompressedProof(bytes32[DEPTH] calldata proofs) external pure returns (bytes32[] memory cProofs) {
-        uint256 len;
-        bytes32 bitmap;
-        for (uint256 i = 0; i < DEPTH; i++) {
-            bitmap = bitmap >> 1;
-            if (proofs[i] != 0) {
-                len++;
-                bitmap = bitmap | bytes32(uint256(2 ** 255));
+    // Solidity impl gas: | getCompressedProof                 | 94149           | 94441    | 94588    | 94588    | 12      |
+    // Assembly impl gas: | getCompressedProof                 | 26934           | 26974    | 26994    | 26994    | 12      |
+    function getCompressedProof(bytes32[DEPTH] calldata /*proofs*/ ) external pure returns (bytes32[] memory cProofs) {
+        assembly {
+            let count := 1
+            let bitmap := 0x00
+            for { let i := 0 } lt(i, DEPTH) {} {
+                bitmap := shr(1, bitmap)
+                let proof := calldataload(add(0x04, mul(i, 0x20)))
+                if gt(proof, 0x00) {
+                    count := add(count, 1)
+                    mstore(add(cProofs, mul(0x20, count)), proof)
+                    bitmap := or(bitmap, 0x8000000000000000000000000000000000000000000000000000000000000000) // Push 1 bit on the left
+                }
+                i := add(i, 1)
             }
-        }
-        cProofs = new bytes32[](len + 1);
-        cProofs[0] = bitmap;
 
-        uint256 count;
-        for (uint256 i = 0; i < DEPTH; i++) {
-            if (proofs[i] != 0) {
-                cProofs[count + 1] = proofs[i];
-                count++;
-            }
+            let cProofsReturnDataPointer := sub(cProofs, 0x20)
+            mstore(cProofsReturnDataPointer, 0x20)
+            mstore(cProofs, count)
+            mstore(add(cProofs, 0x20), bitmap)
+
+            return(cProofsReturnDataPointer, add(0x40, mul(0x20, count)))
         }
     }
 

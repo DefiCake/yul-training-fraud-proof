@@ -135,6 +135,8 @@ contract SMTTest is DSTest {
     function testVerifyCompressedProof() external {
         bytes32[] memory keys = new bytes32[](12);
         bytes32 root;
+
+        // Fill subtree 16..23 and 24..27
         for (uint256 i = 0; i < 12; i++) {
             keys[i] = bytes32(i + 16);
             root = smt.setValue(root, keys[i], hex"01");
