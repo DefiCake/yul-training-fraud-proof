@@ -159,7 +159,7 @@ contract SMTTest is DSTest {
                 assertEq(uncompressedProofs[j], bytes32(0));
             }
 
-            assertTrue(smt.verifyCompressedProof(root, keys[i], compressedProofs));
+            assertTrue(smt.verifyCompressedProof(root, keys[i], compressedProofs), "Failed compressed proofs");
         }
 
         for (uint256 i = 8; i < 12; i++) {
@@ -177,7 +177,7 @@ contract SMTTest is DSTest {
                 assertEq(uncompressedProofs[j], bytes32(0));
             }
 
-            assertTrue(smt.verifyCompressedProof(root, keys[i], compressedProofs));
+            assertTrue(smt.verifyCompressedProof(root, keys[i], compressedProofs), "Failed compressed proofs");
         }
     }
 

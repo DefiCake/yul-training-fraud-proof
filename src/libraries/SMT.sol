@@ -166,10 +166,42 @@ contract SMT {
         return currentNode == root;
     }
 
-    // TODO
     function verifyCompressedProof(bytes32 root, bytes32 key, bytes32[] memory cProofs) public pure returns (bool) {
-        (root, key, cProofs);
-        return true;
+        bytes32 bitmap = cProofs[0];
+        uint256 count = 1;
+        uint256 maxCount = cProofs.length;
+        bytes32 currentNode = key;
+        uint256 i = 0;
+        for (; count < maxCount;) {
+            bytes32 sidenode;
+
+            if (uint256(bitmap >> i) % 2 == 1) {
+                sidenode = cProofs[count];
+                unchecked {
+                    ++count;
+                }
+            }
+
+            currentNode = uint256(key) % 2 == 0 ? hashPair(currentNode, sidenode) : hashPair(sidenode, currentNode);
+
+            key = key >> 1;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        for (; i < DEPTH;) {
+            currentNode = uint256(key) % 2 == 0 ? hashPair(currentNode, bytes32(0)) : hashPair(bytes32(0), currentNode);
+
+            key = key >> 1;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return root == currentNode;
     }
 
     function hashPair(bytes32 a, bytes32 b) internal pure returns (bytes32) {
