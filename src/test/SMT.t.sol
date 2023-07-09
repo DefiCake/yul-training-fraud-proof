@@ -181,6 +181,27 @@ contract SMTTest is DSTest {
         }
     }
 
+    function testVerifyNonInclusionProof() external {
+        bytes32 root;
+
+        // Fill 0x01, 0x05, 0x06, 0x07, 0x0c & 0x0e
+        root = smt.setValue(root, bytes32(uint256(1)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(5)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(6)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(7)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(12)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(14)), hex"01");
+
+        // Prove that 15 was not included - closest included element is 14
+        bool result;
+        result = smt.verifyNonInclusionProof(
+            root, Cast.toBytes32(14), Cast.toBytes32(15), smt.getProof(root, Cast.toBytes32(14))
+        );
+        assertTrue(result);
+
+        // TODO add more unit testing
+    }
+
     // function testGetValue() public {
     //     // bytes32 root = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
     //     // // smt.getDbValue(root);

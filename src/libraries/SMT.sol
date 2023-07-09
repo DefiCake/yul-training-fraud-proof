@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "forge-std/console.sol";
-
 contract SMT {
     uint256 private constant DEPTH = 256;
 
@@ -202,6 +200,59 @@ contract SMT {
         }
 
         return root == currentNode;
+    }
+
+    /**
+     * @dev I don't think this could benefit from yul
+     */
+    function verifyNonInclusionProof(bytes32 root, bytes32 inKey, bytes32 nonKey, bytes32[DEPTH] memory proof)
+        public
+        pure
+        returns (bool)
+    {
+        if (root == 0) return true;
+
+        bool foundNonInclusion;
+        bytes32 currentNode = inKey;
+        uint256 i = 0;
+
+        while (i < DEPTH) {
+            bytes32 sibling = proof[i];
+            currentNode = uint256(inKey) % 2 == 0 ? hashPair(currentNode, sibling) : hashPair(sibling, currentNode);
+
+            inKey = inKey >> 1;
+            nonKey = nonKey >> 1;
+
+            unchecked {
+                ++i;
+            }
+
+            // When this happens, we break out of the loop and continue
+            // without the constant checkings. At this point we know
+            // the nonKey was not included in the root,
+            // but we need to check that the proof is valid
+            if (inKey == nonKey) {
+                if (sibling == 0) {
+                    foundNonInclusion = true;
+                    break;
+                }
+
+                return false;
+            }
+        }
+
+        while (i < DEPTH) {
+            currentNode = uint256(inKey) % 2 == 0 ? hashPair(currentNode, proof[i]) : hashPair(proof[i], currentNode);
+
+            inKey = inKey >> 1;
+            nonKey = nonKey >> 1;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return currentNode == root && foundNonInclusion;
     }
 
     function hashPair(bytes32 a, bytes32 b) internal pure returns (bytes32) {
