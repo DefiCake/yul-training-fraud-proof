@@ -212,6 +212,9 @@ contract SMT {
     {
         if (root == 0) return true;
 
+        require(nonKey > 0);
+        require(inKey > 0);
+
         bool foundNonInclusion;
         bytes32 currentNode = inKey;
         uint256 i = 0;
