@@ -205,7 +205,7 @@ contract SMT {
     /**
      * @dev I don't think this could benefit from yul
      */
-    function verifyNonInclusionProof(bytes32 root, bytes32 inKey, bytes32 nonKey, bytes32[DEPTH] memory proof)
+    function verifyNonInclusionProof(bytes32 root, bytes32 nonKey, bytes32 inKey, bytes32[DEPTH] memory proof)
         public
         pure
         returns (bool)

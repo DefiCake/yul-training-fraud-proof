@@ -184,20 +184,63 @@ contract SMTTest is DSTest {
     function testVerifyNonInclusionProof() external {
         bytes32 root;
 
-        // Fill 0x01, 0x05, 0x06, 0x07, 0x0c & 0x0e
+        // Fill 0x01, 0x05, 0x06, 0x07, 0x0d & 0x0e
         root = smt.setValue(root, bytes32(uint256(1)), hex"01");
         root = smt.setValue(root, bytes32(uint256(5)), hex"01");
         root = smt.setValue(root, bytes32(uint256(6)), hex"01");
         root = smt.setValue(root, bytes32(uint256(7)), hex"01");
-        root = smt.setValue(root, bytes32(uint256(12)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(13)), hex"01");
         root = smt.setValue(root, bytes32(uint256(14)), hex"01");
 
-        // Prove that 15 was not included - closest included element is 14
         bool result;
+
+        // Prove that 15 (0x0f) was not included - closest included element is 14 (0x0e)
         result = smt.verifyNonInclusionProof(
-            root, Cast.toBytes32(14), Cast.toBytes32(15), smt.getProof(root, Cast.toBytes32(14))
+            root, Cast.toBytes32(15), Cast.toBytes32(14), smt.getProof(root, Cast.toBytes32(14))
         );
         assertTrue(result);
+
+        // Prove that 8-12 (0x08 - 0x0c) were not included - closest included element is 13 (0x0d)
+        for (uint256 i = 8; i < 13; i++) {
+            result = smt.verifyNonInclusionProof(
+                root, Cast.toBytes32(i), Cast.toBytes32(13), smt.getProof(root, Cast.toBytes32(13))
+            );
+            assertTrue(result);
+        }
+
+        // Prove that elements 0x02 & 0x03 were not included - closest included element is 0x01
+        result = smt.verifyNonInclusionProof(
+            root, Cast.toBytes32(2), Cast.toBytes32(1), smt.getProof(root, Cast.toBytes32(1))
+        );
+        assertTrue(result);
+
+        result = smt.verifyNonInclusionProof(
+            root, Cast.toBytes32(3), Cast.toBytes32(1), smt.getProof(root, Cast.toBytes32(1))
+        );
+        assertTrue(result);
+
+        // Prove that elements 0x04 was not included - closest included element is 0x05
+        result = smt.verifyNonInclusionProof(
+            root, Cast.toBytes32(4), Cast.toBytes32(5), smt.getProof(root, Cast.toBytes32(5))
+        );
+        assertTrue(result);
+
+        // Trying to prove non inclusion of included elements should return false
+        result = smt.verifyNonInclusionProof(
+            root, Cast.toBytes32(5), Cast.toBytes32(4), smt.getProof(root, Cast.toBytes32(4))
+        );
+        assertTrue(!result);
+
+        result = smt.verifyNonInclusionProof(
+            root, Cast.toBytes32(6), Cast.toBytes32(7), smt.getProof(root, Cast.toBytes32(7))
+        );
+        assertTrue(!result);
+
+        // Trying to prove non inclusion with non included elements should return false
+        result = smt.verifyNonInclusionProof(
+            root, Cast.toBytes32(8), Cast.toBytes32(9), smt.getProof(root, Cast.toBytes32(9))
+        );
+        assertTrue(!result);
 
         // TODO add more unit testing
     }
