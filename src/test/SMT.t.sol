@@ -241,7 +241,25 @@ contract SMTTest is DSTest {
             root, Cast.toBytes32(8), Cast.toBytes32(9), smt.getProof(root, Cast.toBytes32(9))
         );
         assertTrue(!result);
+    }
 
+    function testVerifyNonInclusionCompressedProof() external {
+        bytes32 root;
+
+        // Fill 0x01, 0x05, 0x06, 0x07, 0x0d & 0x0e
+        root = smt.setValue(root, bytes32(uint256(1)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(5)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(6)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(7)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(13)), hex"01");
+        root = smt.setValue(root, bytes32(uint256(14)), hex"01");
+
+        bool result;
+
+        // Prove that 15 (0x0f) was not included - closest included element is 14 (0x0e)
+        result = smt.verifyNonInclusionCompressedProof(
+            root, Cast.toBytes32(15), Cast.toBytes32(14), smt.getCompressedProof(smt.getProof(root, Cast.toBytes32(14)))
+        );
         // TODO add more unit testing
     }
 

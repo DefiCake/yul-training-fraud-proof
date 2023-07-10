@@ -76,7 +76,7 @@ contract SMT {
                 root := sload(slot)
             }
 
-            if (root == bytes32(0)) return db[bytes32(0)];
+            if (root == 0) return db[0];
 
             path = path << 1;
             unchecked {
@@ -190,7 +190,7 @@ contract SMT {
         }
 
         for (; i < DEPTH;) {
-            currentNode = uint256(key) % 2 == 0 ? hashPair(currentNode, bytes32(0)) : hashPair(bytes32(0), currentNode);
+            currentNode = uint256(key) % 2 == 0 ? hashPair(currentNode, 0) : hashPair(0, currentNode);
 
             key = key >> 1;
 
@@ -220,8 +220,8 @@ contract SMT {
         uint256 i = 0;
 
         while (i < DEPTH) {
-            bytes32 sibling = proof[i];
-            currentNode = uint256(inKey) % 2 == 0 ? hashPair(currentNode, sibling) : hashPair(sibling, currentNode);
+            bytes32 sidenode = proof[i];
+            currentNode = uint256(inKey) % 2 == 0 ? hashPair(currentNode, sidenode) : hashPair(sidenode, currentNode);
 
             inKey = inKey >> 1;
             nonKey = nonKey >> 1;
@@ -235,7 +235,7 @@ contract SMT {
             // the nonKey was not included in the root,
             // but we need to check that the proof is valid
             if (inKey == nonKey) {
-                if (sibling == 0) {
+                if (sidenode == 0) {
                     foundNonInclusion = true;
                     break;
                 }
@@ -256,6 +256,87 @@ contract SMT {
         }
 
         return currentNode == root && foundNonInclusion;
+    }
+
+    function verifyNonInclusionCompressedProof(bytes32 root, bytes32 nonKey, bytes32 inKey, bytes32[] memory cProofs)
+        public
+        pure
+        returns (bool)
+    {
+        if (root == 0) return true;
+
+        require(nonKey > 0);
+        require(inKey > 0);
+
+        bytes32 bitmap = cProofs[0];
+        bytes32 currentNode = inKey;
+        uint256 i;
+        uint256 count = 1;
+        uint256 maxCount = cProofs.length;
+        bool foundNonInclusion;
+
+        while (count < maxCount) {
+            bytes32 sidenode;
+
+            if (uint256(bitmap >> i) % 2 == 1) {
+                sidenode = cProofs[count];
+
+                unchecked {
+                    ++count;
+                }
+            }
+
+            currentNode = uint256(inKey) % 2 == 0 ? hashPair(currentNode, sidenode) : hashPair(sidenode, currentNode);
+
+            inKey = inKey >> 1;
+            nonKey = nonKey >> 1;
+
+            unchecked {
+                ++i;
+            }
+
+            if (inKey == nonKey) {
+                if (sidenode == 0) {
+                    foundNonInclusion = true;
+                    break;
+                }
+
+                return false;
+            }
+        }
+
+        while (count < maxCount) {
+            bytes32 sidenode;
+
+            if (uint256(bitmap >> i) % 2 == 1) {
+                sidenode = cProofs[count];
+
+                unchecked {
+                    ++count;
+                }
+            }
+
+            currentNode = uint256(inKey) % 2 == 0 ? hashPair(currentNode, sidenode) : hashPair(sidenode, currentNode);
+
+            inKey = inKey >> 1;
+            nonKey = nonKey >> 1;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        while (i < DEPTH) {
+            currentNode = uint256(inKey) % 2 == 0 ? hashPair(currentNode, 0) : hashPair(0, currentNode);
+
+            inKey = inKey >> 1;
+
+            unchecked {
+                ++i;
+            }
+        }
+
+        return root == currentNode && foundNonInclusion;
     }
 
     function hashPair(bytes32 a, bytes32 b) internal pure returns (bytes32) {
