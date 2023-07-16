@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract ClaimTrees {
+contract Claims {
     struct ClaimTree {
         bytes32 parent;
         uint256 timestamp;
@@ -9,16 +9,21 @@ contract ClaimTrees {
         bytes data;
     }
 
-    uint256 public constant clock = 3 days;
+    uint256 public immutable clock;
+
+    constructor(uint256 _clock) {
+        clock = _clock;
+    }
 
     mapping(bytes32 => ClaimTree) public trees;
 
-    function commitRoot(bytes calldata data) external {
+    function commitRoot(bytes calldata data) external returns (bytes32 hash) {
         ClaimTree memory tree = ClaimTree(0, block.timestamp, 0, data);
-        trees[keccak256(abi.encode(tree))] = tree;
+        hash = keccak256(abi.encode(tree));
+        trees[hash] = tree;
     }
 
-    function challenge(bytes32 parentHash, bytes calldata data) external {
+    function challenge(bytes32 parentHash, bytes calldata data) external returns (bytes32 hash) {
         require(trees[parentHash].timestamp > 0);
 
         ClaimTree memory parentTree = trees[parentHash];
@@ -27,6 +32,11 @@ contract ClaimTrees {
 
         ClaimTree memory tree = ClaimTree(parentHash, block.timestamp, consumedTime, data);
 
-        trees[keccak256(abi.encode(tree))] = tree;
+        hash = keccak256(abi.encode(tree));
+        trees[hash] = tree;
+    }
+
+    function getTree(bytes32 hash) public view returns (ClaimTree memory) {
+        return trees[hash];
     }
 }
