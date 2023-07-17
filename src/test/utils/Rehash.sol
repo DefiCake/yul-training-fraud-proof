@@ -11,4 +11,11 @@ library Rehash {
 
         return hash;
     }
+
+    function rehash(bytes32 data, uint256 times) external pure returns (bytes32) {
+        for (uint256 i = 0; i < times; i++) {
+            data = keccak256(abi.encode(data));
+        }
+        return data;
+    }
 }
