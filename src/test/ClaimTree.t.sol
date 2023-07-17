@@ -9,7 +9,7 @@ import "forge-std/Vm.sol";
 import "./utils/rehash.sol";
 import "../Claims.sol";
 
-contract SMTTest is DSTest, Test {
+contract ClaimTreeTest is DSTest, Test {
     using Rehash for bytes;
 
     uint256 private constant clock = 15 seconds;
@@ -40,7 +40,7 @@ contract SMTTest is DSTest, Test {
     function test_CannotChallengeRootClaimAfterClock(
         address challenger1,
         address challenger2,
-        uint256 time,
+        uint48 time,
         bytes32 seed
     ) external {
         vm.assume(time > clock);
@@ -51,9 +51,11 @@ contract SMTTest is DSTest, Test {
         bytes32 rootClaim = claimsTree.commitRoot(abi.encode(_seed.rehash(1)));
 
         skip(time);
-        vm.prank(challenger2);
-        bytes32 counterClaim = claimsTree.challenge(rootClaim, abi.encode(_seed.rehash(2)));
-
-        assertEq(claimsTree.getTree(counterClaim).parent, rootClaim);
+        {
+            bytes memory rehash = abi.encode(_seed.rehash(2));
+            vm.prank(challenger2);
+            vm.expectRevert("Timeout");
+            claimsTree.challenge(rootClaim, rehash);
+        }
     }
 }

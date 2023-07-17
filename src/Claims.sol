@@ -15,28 +15,29 @@ contract Claims {
         clock = _clock;
     }
 
-    mapping(bytes32 => ClaimTree) public trees;
+    mapping(bytes32 => ClaimTree) private trees;
 
-    function commitRoot(bytes calldata data) external returns (bytes32 hash) {
+    function commitRoot(bytes calldata data) external returns (bytes32 _hash) {
         ClaimTree memory tree = ClaimTree(0, block.timestamp, 0, data);
-        hash = keccak256(abi.encode(tree));
-        trees[hash] = tree;
+        _hash = keccak256(abi.encode(tree));
+        trees[_hash] = tree;
     }
 
-    function challenge(bytes32 parentHash, bytes calldata data) external returns (bytes32 hash) {
+    function challenge(bytes32 parentHash, bytes calldata data) external returns (bytes32 _hash) {
         require(trees[parentHash].timestamp > 0);
 
         ClaimTree memory parentTree = trees[parentHash];
         ClaimTree memory grandparentTree = trees[parentTree.parent];
         uint256 consumedTime = block.timestamp - parentTree.timestamp + grandparentTree.opponentConsumedTime;
 
+        require(consumedTime < clock, "Timeout");
         ClaimTree memory tree = ClaimTree(parentHash, block.timestamp, consumedTime, data);
 
-        hash = keccak256(abi.encode(tree));
-        trees[hash] = tree;
+        _hash = keccak256(abi.encode(tree));
+        trees[_hash] = tree;
     }
 
-    function getTree(bytes32 hash) public view returns (ClaimTree memory) {
-        return trees[hash];
+    function getTree(bytes32 _hash) public view returns (ClaimTree memory ret) {
+        ret = trees[_hash];
     }
 }
